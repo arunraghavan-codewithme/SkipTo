@@ -1,0 +1,10 @@
+.timestamp {
+  margin: 1.5rem 0 0;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  color: #94a3b8;
+}
+
+.timestamp time {
+  font-variant-numeric: tabular-nums;
+}
