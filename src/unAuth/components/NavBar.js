@@ -23,7 +23,12 @@ function NavBar() {
       <nav className="navbar-links" aria-label="Primary">
         <a href="#pricing">Pricing</a>
         <a href="#blog">Blog</a>
-        <a className="navbar-cta" href="#chatbot">
+        <a
+          className="navbar-cta"
+          href="https://bumpups.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           AI Video Chatbot <FontAwesomeIcon icon={faArrowRight} />
         </a>
       </nav>

@@ -17,9 +17,15 @@ body {
   display: block;
   background: #0f172a;
   overflow-x: hidden;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 
 #root {
   max-width: none;
   text-align: initial;
+}
+
+button,
+input {
+  font-family: inherit;
 }

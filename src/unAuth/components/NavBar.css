@@ -72,6 +72,7 @@
   background: #2196f3;
   color: #fff;
   font-weight: 700;
+  white-space: nowrap;
   border-radius: 6px;
   transition: background 0.2s ease;
 }
@@ -81,10 +82,18 @@
   color: #fff;
 }
 
-/* Tablet / mobile: hide text links, keep the button */
+/* Tablet / mobile: logo centered on top, button centered below */
 @media (max-width: 900px) {
   .navbar {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.9rem;
     padding: 1rem 1.5rem;
+  }
+
+  .navbar-links {
+    justify-content: center;
+    width: 100%;
   }
 
   .navbar-links a:not(.navbar-cta) {
