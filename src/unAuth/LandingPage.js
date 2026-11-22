@@ -9,8 +9,6 @@ function LandingPage() {
     <div className="landing" id="top">
       <NavBar />
       <main className="landing-main">
-        <h1 className="landing-title">Hello landing page</h1>
-        <p className="landing-subtitle">Welcome. This is the public landing page.</p>
         <Timestamp />
       </main>
       <Bumpups />

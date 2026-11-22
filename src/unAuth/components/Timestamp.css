@@ -1,10 +1,90 @@
-.timestamp {
-  margin: 1.5rem 0 0;
-  font-size: 0.95rem;
-  letter-spacing: 0.02em;
-  color: #94a3b8;
-}
+.timestamp-card {
+    width: 100%;
+    padding: 2rem;
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    text-align: left;
+  }
+  
+  .timestamp-title {
+    margin: 0 0 1rem;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  
+  .timestamp-text {
+    margin: 0 0 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #e2e8f0;
+  }
+  
+  .timestamp-text a {
+    color: #fff;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+  
+  .timestamp-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0.4rem 0.4rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+  }
+  
+  .timestamp-link-icon {
+    color: #94a3b8;
+  }
+  
+  .timestamp-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.6rem 0;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: #f8fafc;
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+  
+  .timestamp-input::placeholder {
+    color: #64748b;
+  }
+  
+  .timestamp-button {
+    padding: 0.6rem 1.25rem;
+    background: #2196f3;
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .timestamp-button:hover {
+    background: #1976d2;
+  }
+  
+  @media (max-width: 600px) {
+    .timestamp-card {
+      padding: 1.25rem;
+    }
+  
+    .timestamp-title {
+      font-size: 1.5rem;
+    }
+  }
 
-.timestamp time {
-  font-variant-numeric: tabular-nums;
-}
+  .timestamp-error {
+    margin: 0.75rem 0 0;
+    font-size: 0.9rem;
+    color: #f87171;
+  }
