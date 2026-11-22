@@ -1,9 +1,9 @@
 import './Footer.css';
 
 const columns = [
-  { title: 'Product', links: ['News', 'Pricing'] },
-  { title: 'Features', links: ['Workspaces', 'Creator Studio'] },
-  { title: 'API', links: ['Startups', 'Zapier'] },
+  { title: 'Product', links: ['Pricing', 'Blog'] },
+  { title: 'Features', links: ['Timestamps', 'Chapters', 'Summaries'] },
+  { title: 'Company', links: ['About', 'Contact'] },
 ];
 
 function Footer() {
@@ -15,8 +15,8 @@ function Footer() {
         <div className="footer-brand">
           <h3 className="footer-tagline">SKIP TO WHAT MATTERS</h3>
           <p>
-            Bump AI will watch any video and deliver insights across all
-            industries.
+            SkipTo uses AI to turn any YouTube video into clear timestamps, so
+            you spend less time scrubbing and more time watching.
           </p>
         </div>
 

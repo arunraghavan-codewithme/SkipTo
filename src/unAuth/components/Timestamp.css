@@ -21,12 +21,6 @@
     color: #e2e8f0;
   }
   
-  .timestamp-text a {
-    color: #fff;
-    font-weight: 700;
-    text-decoration: underline;
-  }
-  
   .timestamp-form {
     display: flex;
     align-items: center;
@@ -69,8 +63,74 @@
     transition: background 0.2s ease;
   }
   
-  .timestamp-button:hover {
+  .timestamp-button:hover:not(:disabled) {
     background: #1976d2;
+  }
+  
+  .timestamp-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .timestamp-error {
+    margin: 0.75rem 0 0;
+    font-size: 0.9rem;
+    color: #f87171;
+  }
+  
+  /* Thumbnail + title, centered under the input */
+  .timestamp-video {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem 0 0;
+    text-align: center;
+  }
+  
+  .timestamp-thumbnail {
+    display: block;
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  .timestamp-video-title {
+    max-width: 640px;
+    margin-top: 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #f8fafc;
+  }
+  
+  /* Loading placeholder */
+  .timestamp-skeleton {
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 16 / 9;
+    margin: 2rem auto 0;
+    border-radius: 10px;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 25%,
+      rgba(255, 255, 255, 0.12) 50%,
+      rgba(255, 255, 255, 0.05) 75%
+    );
+    background-size: 200% 100%;
+    animation: timestamp-shimmer 1.2s infinite linear;
+  }
+  
+  @keyframes timestamp-shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
   }
   
   @media (max-width: 600px) {
@@ -81,10 +141,8 @@
     .timestamp-title {
       font-size: 1.5rem;
     }
-  }
-
-  .timestamp-error {
-    margin: 0.75rem 0 0;
-    font-size: 0.9rem;
-    color: #f87171;
+  
+    .timestamp-video-title {
+      font-size: 1.05rem;
+    }
   }

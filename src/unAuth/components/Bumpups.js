@@ -2,16 +2,16 @@ import './Bumpups.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRight,
-  faArrowUpFromBracket,
-  faComments,
-  faVideo,
+  faClock,
+  faListUl,
+  faFileLines,
   faLaptopCode,
 } from '@fortawesome/free-solid-svg-icons';
 
 const cards = [
-  { label: 'Local Videos', icon: faArrowUpFromBracket, href: '#local-videos' },
-  { label: 'Video Chat', icon: faComments, href: '#video-chat' },
-  { label: 'AI YouTube', icon: faVideo, href: '#ai-youtube' },
+  { label: 'Timestamps', icon: faClock, href: '#timestamps' },
+  { label: 'Chapters', icon: faListUl, href: '#chapters' },
+  { label: 'Summaries', icon: faFileLines, href: '#summaries' },
   { label: 'API', icon: faLaptopCode, href: '#api' },
 ];
 
@@ -21,11 +21,12 @@ function Bumpups() {
       <hr className="bumpups-divider" />
 
       <h2 className="bumpups-title">
-        Do more with bump<span className="bumpups-accent">ups</span>.com
+        Do more with Skip<span className="bumpups-accent">To</span>
       </h2>
       <p className="bumpups-text">
-        Process your videos to deliver insights across all industries. Ask
-        questions, request summaries, analyses, and more with Bump-1.0.
+        Turn long videos into something you can scan in seconds. Get
+        timestamps, chapters and summaries, so you can skip straight to what
+        matters.
       </p>
 
       <div className="bumpups-grid">
