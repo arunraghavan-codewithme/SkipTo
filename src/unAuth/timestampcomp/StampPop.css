@@ -1,0 +1,178 @@
+.stamppop-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    animation: stamppop-fade 0.2s ease;
+  }
+  
+  .stamppop {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    color: #e2e8f0;
+    animation: stamppop-rise 0.25s ease;
+  }
+  
+  .stamppop-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    color: #94a3b8;
+    border: 0;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  .stamppop-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8fafc;
+  }
+  
+  .stamppop-head {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding-right: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .stamppop-thumb {
+    width: 120px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  
+  .stamppop-title {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #f8fafc;
+  }
+  
+  .stamppop-meta {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #94a3b8;
+  }
+  
+  .stamppop-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex: 1;
+  }
+  
+  .stamppop-list li {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    line-height: 1.4;
+  }
+  
+  .stamppop-list a {
+    flex-shrink: 0;
+    min-width: 3.5rem;
+    color: #2196f3;
+    font-family: monospace;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  
+  .stamppop-list a:hover {
+    text-decoration: underline;
+  }
+  
+  .stamppop-footer {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+  }
+  
+  .stamppop-copy,
+  .stamppop-open {
+    padding: 0.55rem 1.1rem;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  .stamppop-copy {
+    background: #2196f3;
+    color: #fff;
+    border: 0;
+  }
+  
+  .stamppop-copy:hover {
+    background: #1976d2;
+  }
+  
+  .stamppop-open {
+    background: transparent;
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .stamppop-open:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  
+  @keyframes stamppop-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes stamppop-rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @media (max-width: 600px) {
+    .stamppop {
+      padding: 1.1rem;
+    }
+  
+    .stamppop-head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .stamppop-thumb {
+      width: 100%;
+    }
+  
+    .stamppop-footer {
+      flex-direction: column;
+    }
+  
+    .stamppop-copy,
+    .stamppop-open {
+      text-align: center;
+    }
+  }

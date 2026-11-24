@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLink } from '@fortawesome/free-solid-svg-icons';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebase';
+import StampPop from '../timestampcomp/StampPop';
+import VideoList, { saveToHistory } from '../timestampcomp/VideoList';
 import './Timestamp.css';
 
 const API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY;
@@ -16,10 +18,6 @@ const generateTimestamps = httpsCallable(functions, 'generate_timestamps', {
   timeout: 120000,
 });
 
-// "1:42" -> 102, "1:02:05" -> 3725
-const toSeconds = (time) =>
-  time.split(':').reduce((total, part) => total * 60 + Number(part), 0);
-
 function Timestamp() {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
@@ -30,20 +28,21 @@ function Timestamp() {
   // Timestamps (from your generate_timestamps function)
   const [tsLoading, setTsLoading] = useState(false);
   const [tsError, setTsError] = useState('');
-  const [timestamps, setTimestamps] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [result, setResult] = useState(null); // full record for the current video
+  const [popData, setPopData] = useState(null); // what the popup is showing
   const tsRequestRef = useRef(0);
 
   // Cancel any in-flight request if the component unmounts
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  const closePopup = useCallback(() => setPopData(null), []);
 
   // Clears old timestamps (and ignores any request still running)
   const resetTimestamps = () => {
     tsRequestRef.current++;
     setTsLoading(false);
     setTsError('');
-    setTimestamps(null);
-    setCopied(false);
+    setResult(null);
   };
 
   // Editing the link starts over, so the button goes back to "Load Video"
@@ -139,8 +138,7 @@ function Timestamp() {
 
     setTsLoading(true);
     setTsError('');
-    setTimestamps(null);
-    setCopied(false);
+    setResult(null);
 
     const payload = {
       url: `https://www.youtube.com/watch?v=${video.id}`,
@@ -153,7 +151,20 @@ function Timestamp() {
       const res = await generateTimestamps(payload);
       if (requestId !== tsRequestRef.current) return; // a newer request replaced this one
       console.log('Data received from generate_timestamps:', res.data);
-      setTimestamps(res.data);
+
+      const record = {
+        id: video.id,
+        title: video.title,
+        thumbnail: video.thumbnail,
+        timestamps_list: res.data.timestamps_list,
+        timestamps_string: res.data.timestamps_string,
+        video_duration: res.data.video_duration,
+        savedAt: Date.now(),
+      };
+
+      setResult(record);
+      setPopData(record); // open the popup
+      saveToHistory(record); // add to "Your recent videos"
     } catch (err) {
       if (requestId !== tsRequestRef.current) return;
       console.error('generate_timestamps failed:', err);
@@ -171,12 +182,6 @@ function Timestamp() {
     } else {
       loadVideo();
     }
-  };
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(timestamps.timestamps_string);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   // Some videos have no max-res image. Fall back to a smaller one.
@@ -240,6 +245,18 @@ function Timestamp() {
           {video.title && (
             <figcaption className="timestamp-video-title">{video.title}</figcaption>
           )}
+
+          {/* Re-open the popup after closing it */}
+          {result && !tsLoading && (
+            <button
+              type="button"
+              className="timestamp-copy"
+              style={{ marginTop: '1rem' }}
+              onClick={() => setPopData(result)}
+            >
+              View timestamps ({result.timestamps_list.length})
+            </button>
+          )}
         </figure>
       )}
 
@@ -255,37 +272,11 @@ function Timestamp() {
         </p>
       )}
 
-      {timestamps && video && (
-        <div className="timestamp-results">
-          <div className="timestamp-results-header">
-            <span>
-              {timestamps.timestamps_list.length} timestamps · ~
-              {timestamps.video_duration} min
-            </span>
-            <button type="button" className="timestamp-copy" onClick={handleCopy}>
-              {copied ? 'Copied!' : 'Copy all'}
-            </button>
-          </div>
+      {/* "Your recent videos": clicking one opens its saved timestamps (no Gemini call) */}
+      <VideoList onSelect={setPopData} />
 
-          <ul className="timestamp-list">
-            {timestamps.timestamps_list.map((line) => {
-              const [time, ...rest] = line.split(' - ');
-              return (
-                <li key={line}>
-                  <a
-                    href={`https://www.youtube.com/watch?v=${video.id}&t=${toSeconds(time)}s`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {time}
-                  </a>{' '}
-                  {rest.join(' - ')}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+      {/* Popup */}
+      {popData && <StampPop data={popData} onClose={closePopup} />}
     </section>
   );
 }

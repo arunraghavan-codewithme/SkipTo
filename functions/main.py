@@ -9,11 +9,23 @@ from pydantic import BaseModel
 
 initialize_app()
 
-MODEL = "gemini-4-hydrogen"
+# Tried in order: best quality first, then the model with the bigger free limit
+#   gemini-4-hydrogen:      20 requests/day (free)
+#   gemini-3.5-flash-lite: 500 requests/day (free)
+MODELS = ["gemini-4-hydrogen", "gemini-3.5-flash-lite"]
 
-# Error codes worth retrying: rate limit (429) and temporary server problems (5xx)
-RETRY_CODES = {429, 500, 503, 504}
-RETRY_DELAYS = [2, 5, 10]  # seconds to wait before each retry
+# Temporary server problems worth retrying on the same model
+RETRY_CODES = {500, 503, 504}
+RETRY_DELAYS = [2, 5]  # seconds to wait before each retry
+
+# Model is over its limit (429) or not available (404): move on to the next model
+SWITCH_CODES = {429, 404}
+SKIP_SECONDS = 600  # after a 429, skip that model for 10 minutes
+
+# Watch videos at low resolution: uses fewer tokens, timestamps stay about the same
+LOW_RES = types.MediaResolution.MEDIA_RESOLUTION_LOW
+
+_skip_until = {}  # model name -> time when we can try it again
 
 
 # ---------- shared helpers ----------
@@ -50,46 +62,70 @@ def video_part(url: str) -> types.Part:
     return types.Part(file_data=types.FileData(file_uri=url))
 
 
-def generate_with_retry(contents, config=None):
-    """Call Gemini, retrying automatically if it's busy or rate-limited."""
-    for attempt in range(len(RETRY_DELAYS) + 1):
-        try:
-            logger.info("Calling Gemini", model=MODEL, attempt=attempt + 1)
-            response = get_client().models.generate_content(
-                model=MODEL, contents=contents, config=config
-            )
-            logger.info("Gemini responded", attempt=attempt + 1)
-            return response
-        except errors.APIError as e:
-            can_retry = e.code in RETRY_CODES and attempt < len(RETRY_DELAYS)
-            if can_retry:
-                logger.warn(
-                    "Gemini busy, retrying",
-                    code=e.code,
-                    wait_seconds=RETRY_DELAYS[attempt],
-                )
-                time.sleep(RETRY_DELAYS[attempt])
-                continue
+def generate_with_fallback(contents, config=None):
+    """Try each model in MODELS. Returns (response, model_used)."""
+    client = get_client()
+    last_code = None
 
-            logger.error("Gemini API error", code=e.code, message=str(e))
-            if e.code == 429:
-                raise https_fn.HttpsError(
-                    https_fn.FunctionsErrorCode.RESOURCE_EXHAUSTED,
-                    "Gemini free limit reached. Please wait a minute and try again.",
+    for model in MODELS:
+        if time.time() < _skip_until.get(model, 0):
+            logger.info("Skipping model (recently over limit)", model=model)
+            last_code = 429
+            continue
+
+        for attempt in range(len(RETRY_DELAYS) + 1):
+            try:
+                logger.info("Calling Gemini", model=model, attempt=attempt + 1)
+                response = client.models.generate_content(
+                    model=model, contents=contents, config=config
                 )
-            if e.code in RETRY_CODES:
+                logger.info("Gemini responded", model=model, attempt=attempt + 1)
+                return response, model
+
+            except errors.APIError as e:
+                last_code = e.code
+
+                # Temporary problem: wait and retry the same model
+                if e.code in RETRY_CODES and attempt < len(RETRY_DELAYS):
+                    logger.warn(
+                        "Gemini busy, retrying",
+                        model=model,
+                        code=e.code,
+                        wait_seconds=RETRY_DELAYS[attempt],
+                    )
+                    time.sleep(RETRY_DELAYS[attempt])
+                    continue
+
+                # Over limit, unavailable, or still busy: try the next model
+                if e.code in SWITCH_CODES or e.code in RETRY_CODES:
+                    if e.code == 429:
+                        _skip_until[model] = time.time() + SKIP_SECONDS
+                    logger.warn("Switching to next model", model=model, code=e.code)
+                    break
+
+                # Anything else (bad link, private video, etc.): stop
+                logger.error("Gemini API error", model=model, code=e.code, message=str(e))
                 raise https_fn.HttpsError(
-                    https_fn.FunctionsErrorCode.UNAVAILABLE,
-                    "Gemini is busy right now. Please try again in a few minutes.",
+                    https_fn.FunctionsErrorCode.INTERNAL, f"Gemini error: {e}"
                 )
-            raise https_fn.HttpsError(
-                https_fn.FunctionsErrorCode.INTERNAL, f"Gemini error: {e}"
-            )
-        except Exception as e:
-            logger.error("Unexpected error calling Gemini", message=str(e))
-            raise https_fn.HttpsError(
-                https_fn.FunctionsErrorCode.INTERNAL, f"Gemini error: {e}"
-            )
+
+            except Exception as e:
+                logger.error("Unexpected error calling Gemini", model=model, message=str(e))
+                raise https_fn.HttpsError(
+                    https_fn.FunctionsErrorCode.INTERNAL, f"Gemini error: {e}"
+                )
+
+    # Every model failed
+    logger.error("All models failed", last_code=last_code)
+    if last_code == 429:
+        raise https_fn.HttpsError(
+            https_fn.FunctionsErrorCode.RESOURCE_EXHAUSTED,
+            "Daily free AI limit reached. Please try again later.",
+        )
+    raise https_fn.HttpsError(
+        https_fn.FunctionsErrorCode.UNAVAILABLE,
+        "The AI is busy right now. Please try again in a few minutes.",
+    )
 
 
 # ---------- 1. Ask anything about a video ----------
@@ -101,11 +137,12 @@ def ask_about_video(req: https_fn.CallableRequest):
     prompt = data.get("prompt") or "Summarize this video in 5 bullet points."
     logger.info("ask_about_video called", url=url, prompt=prompt)
 
-    response = generate_with_retry(
-        contents=types.Content(parts=[video_part(url), types.Part(text=prompt)])
+    response, model_used = generate_with_fallback(
+        contents=types.Content(parts=[video_part(url), types.Part(text=prompt)]),
+        config=types.GenerateContentConfig(media_resolution=LOW_RES),
     )
-    logger.info("ask_about_video done", answer_length=len(response.text or ""))
-    return {"text": response.text}
+    logger.info("ask_about_video done", model=model_used, answer_length=len(response.text or ""))
+    return {"text": response.text, "model": model_used}
 
 
 # ---------- 2. Generate timestamps (Bumpups-style) ----------
@@ -150,32 +187,34 @@ Rules:
 - Write the titles in the language with this code: {language}.
 Also give the video's total length in whole minutes."""
 
-    response = generate_with_retry(
+    response, model_used = generate_with_fallback(
         contents=types.Content(parts=[video_part(url), types.Part(text=prompt)]),
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=TimestampsResult,
+            media_resolution=LOW_RES,
         ),
     )
 
     result: TimestampsResult = response.parsed
     if result is None:
-        logger.error("Gemini returned no parsable timestamps", raw=response.text)
+        logger.error("Gemini returned no parsable timestamps", model=model_used, raw=response.text)
         raise https_fn.HttpsError(
             https_fn.FunctionsErrorCode.INTERNAL,
-            "Gemini did not return valid timestamps. Try again.",
+            "The AI did not return valid timestamps. Try again.",
         )
 
     timestamps_list = [f"{t.time} - {t.title}" for t in result.timestamps]
     logger.info(
         "generate_timestamps done",
+        model=model_used,
         count=len(timestamps_list),
         video_duration=result.video_duration_minutes,
     )
 
     return {
         "url": url,
-        "model": MODEL,
+        "model": model_used,
         "language": language,
         "timestamps_style": style,
         "timestamps_list": timestamps_list,
