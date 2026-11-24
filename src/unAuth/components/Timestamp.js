@@ -37,11 +37,26 @@ function Timestamp() {
   // Cancel any in-flight request if the component unmounts
   useEffect(() => () => abortRef.current?.abort(), []);
 
+  // Clears old timestamps (and ignores any request still running)
+  const resetTimestamps = () => {
+    tsRequestRef.current++;
+    setTsLoading(false);
+    setTsError('');
+    setTimestamps(null);
+    setCopied(false);
+  };
+
+  // Editing the link starts over, so the button goes back to "Load Video"
   const handleChange = (e) => {
     setUrl(e.target.value);
     if (error) setError('');
+    if (video) {
+      setVideo(null);
+      resetTimestamps();
+    }
   };
 
+  // ---------- Step 1: load thumbnail + title ----------
   const fetchVideo = async (videoId) => {
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -89,34 +104,7 @@ function Timestamp() {
     }
   };
 
-  const fetchTimestamps = async (videoId) => {
-    const requestId = ++tsRequestRef.current;
-
-    setTsLoading(true);
-    setTsError('');
-    setTimestamps(null);
-    setCopied(false);
-
-    try {
-      const res = await generateTimestamps({
-        url: `https://www.youtube.com/watch?v=${videoId}`,
-        language: 'en',
-        timestamps_style: 'long',
-      });
-      if (requestId !== tsRequestRef.current) return; // a newer request replaced this one
-      console.log('generate_timestamps result:', res.data);
-      setTimestamps(res.data);
-    } catch (err) {
-      if (requestId !== tsRequestRef.current) return;
-      console.error('generate_timestamps failed:', err);
-      setTsError(err.message || 'Could not generate timestamps. Please try again.');
-    } finally {
-      if (requestId === tsRequestRef.current) setTsLoading(false);
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const loadVideo = () => {
     const value = url.trim();
 
     if (!value) {
@@ -131,8 +119,8 @@ function Timestamp() {
     }
 
     const videoId = match[1];
+    resetTimestamps();
 
-    // Title + thumbnail (needs the YouTube API key)
     if (API_KEY) {
       fetchVideo(videoId);
     } else {
@@ -142,9 +130,47 @@ function Timestamp() {
         thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
       });
     }
+  };
 
-    // Timestamps (your Gemini Cloud Function)
-    fetchTimestamps(videoId);
+  // ---------- Step 2: generate timestamps ----------
+  const handleGenerateTimestamps = async () => {
+    if (!video) return;
+    const requestId = ++tsRequestRef.current;
+
+    setTsLoading(true);
+    setTsError('');
+    setTimestamps(null);
+    setCopied(false);
+
+    const payload = {
+      url: `https://www.youtube.com/watch?v=${video.id}`,
+      language: 'en',
+      timestamps_style: 'long',
+    };
+    console.log('Payload sent to generate_timestamps:', payload);
+
+    try {
+      const res = await generateTimestamps(payload);
+      if (requestId !== tsRequestRef.current) return; // a newer request replaced this one
+      console.log('Data received from generate_timestamps:', res.data);
+      setTimestamps(res.data);
+    } catch (err) {
+      if (requestId !== tsRequestRef.current) return;
+      console.error('generate_timestamps failed:', err);
+      setTsError(err.message || 'Could not generate timestamps. Please try again.');
+    } finally {
+      if (requestId === tsRequestRef.current) setTsLoading(false);
+    }
+  };
+
+  // One button: loads the video first, then generates timestamps
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (video) {
+      handleGenerateTimestamps();
+    } else {
+      loadVideo();
+    }
   };
 
   const handleCopy = async () => {
@@ -161,7 +187,10 @@ function Timestamp() {
     }
   };
 
-  const busy = loading || tsLoading;
+  let buttonLabel = 'Load Video';
+  if (loading) buttonLabel = 'Loading...';
+  else if (tsLoading) buttonLabel = 'Generating...';
+  else if (video) buttonLabel = 'Generate Timestamps';
 
   return (
     <section className="timestamp-card" id="timestamps">
@@ -181,9 +210,14 @@ function Timestamp() {
           onChange={handleChange}
           aria-label="YouTube video URL"
           aria-invalid={!!error}
+          disabled={tsLoading}
         />
-        <button type="submit" className="timestamp-button" disabled={busy}>
-          {busy ? 'Loading...' : 'Generate'}
+        <button
+          type="submit"
+          className="timestamp-button"
+          disabled={loading || tsLoading}
+        >
+          {buttonLabel}
         </button>
       </form>
 
@@ -211,7 +245,7 @@ function Timestamp() {
 
       {tsLoading && (
         <p className="timestamp-status">
-          Generating timestamps... this can take up to a minute.
+          Watching the video... this can take up to a minute.
         </p>
       )}
 
