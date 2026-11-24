@@ -1,5 +1,7 @@
 // src/unAuth/timestampcomp/VideoList.js
 import { useEffect, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import './VideoList.css';
 
 const HISTORY_KEY = 'timestampHistory';
@@ -55,33 +57,42 @@ export default function VideoList({ onSelect }) {
   return (
     <section className="videolist">
       <div className="videolist-header">
-        <h3 className="videolist-title">Your recent videos</h3>
+        <h3 className="videolist-title">
+          <FontAwesomeIcon icon={faArrowsRotate} className="videolist-icon" />
+          History
+        </h3>
         <button type="button" className="videolist-clear" onClick={clearHistory}>
-          Clear history
+          Clear
         </button>
       </div>
 
-      <ul className="videolist-grid">
+      <ul className="videolist-rows">
         {history.map((item) => (
-          <li key={item.id}>
-            <button
-              type="button"
-              className="videolist-item"
-              onClick={() => onSelect(item)}
-            >
-              <img
-                className="videolist-thumb"
-                src={item.thumbnail}
-                alt={item.title ? `Thumbnail for ${item.title}` : 'Video thumbnail'}
-                onError={(e) => {
-                  e.currentTarget.src = `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`;
-                }}
-              />
+          <li key={item.id} className="videolist-row" onClick={() => onSelect(item)}>
+            <img
+              className="videolist-thumb"
+              src={item.thumbnail}
+              alt=""
+              onError={(e) => {
+                e.currentTarget.src = `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`;
+              }}
+            />
+            <div className="videolist-info">
               <span className="videolist-name">{item.title || 'Untitled video'}</span>
               <span className="videolist-meta">
                 {item.timestamps_list.length} timestamps
                 {item.video_duration ? ` · ~${item.video_duration} min` : ''}
               </span>
+            </div>
+            <button
+              type="button"
+              className="videolist-view"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(item);
+              }}
+            >
+              View Timestamps
             </button>
           </li>
         ))}

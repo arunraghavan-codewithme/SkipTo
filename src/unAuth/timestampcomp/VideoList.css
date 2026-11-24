@@ -1,7 +1,9 @@
 .videolist {
     margin-top: 2.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.25rem;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
   }
   
   .videolist-header {
@@ -12,20 +14,27 @@
   }
   
   .videolist-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #f8fafc;
   }
   
+  .videolist-icon {
+    font-size: 1rem;
+  }
+  
   .videolist-clear {
-    padding: 0.35rem 0.8rem;
+    padding: 0.3rem 0.75rem;
     background: transparent;
     color: #94a3b8;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 6px;
     font-family: inherit;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
   }
   
@@ -34,45 +43,47 @@
     border-color: #f87171;
   }
   
-  .videolist-grid {
+  .videolist-rows {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-  }
-  
-  .videolist-item {
-    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    padding: 0.6rem;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid transparent;
-    border-radius: 10px;
-    color: inherit;
-    font-family: inherit;
-    text-align: left;
-    cursor: pointer;
-    transition: border-color 0.2s ease, transform 0.2s ease;
+    gap: 0.6rem;
   }
   
-  .videolist-item:hover {
-    border-color: #2196f3;
-    transform: translateY(-2px);
+  .videolist-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .videolist-row:hover {
+    background: rgba(255, 255, 255, 0.05);
   }
   
   .videolist-thumb {
-    width: 100%;
+    width: 120px;
     aspect-ratio: 16 / 9;
     object-fit: cover;
     border-radius: 6px;
+    flex-shrink: 0;
+  }
+  
+  .videolist-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
   
   .videolist-name {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
     line-height: 1.3;
     color: #f8fafc;
@@ -86,4 +97,36 @@
   .videolist-meta {
     font-size: 0.8rem;
     color: #94a3b8;
+  }
+  
+  .videolist-view {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    background: #2196f3;
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .videolist-view:hover {
+    background: #1976d2;
+  }
+  
+  @media (max-width: 600px) {
+    .videolist-row {
+      flex-wrap: wrap;
+    }
+  
+    .videolist-thumb {
+      width: 96px;
+    }
+  
+    .videolist-view {
+      width: 100%;
+    }
   }

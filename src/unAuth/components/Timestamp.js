@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLink } from '@fortawesome/free-solid-svg-icons';
+import {
+  faLink,
+  faSpinner,
+  faWandMagicSparkles,
+} from '@fortawesome/free-solid-svg-icons';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebase';
 import StampPop from '../timestampcomp/StampPop';
@@ -164,7 +168,7 @@ function Timestamp() {
 
       setResult(record);
       setPopData(record); // open the popup
-      saveToHistory(record); // add to "Your recent videos"
+      saveToHistory(record); // add to "History"
     } catch (err) {
       if (requestId !== tsRequestRef.current) return;
       console.error('generate_timestamps failed:', err);
@@ -192,10 +196,19 @@ function Timestamp() {
     }
   };
 
-  let buttonLabel = 'Load Video';
-  if (loading) buttonLabel = 'Loading...';
-  else if (tsLoading) buttonLabel = 'Generating...';
-  else if (video) buttonLabel = 'Generate Timestamps';
+  let buttonContent = 'Load Video';
+  if (loading) {
+    buttonContent = 'Loading...';
+  } else if (tsLoading) {
+    buttonContent = (
+      <>
+        <FontAwesomeIcon icon={faWandMagicSparkles} className="wand-icon" />
+        Generating...
+      </>
+    );
+  } else if (video) {
+    buttonContent = 'Generate Timestamps';
+  }
 
   return (
     <section className="timestamp-card" id="timestamps">
@@ -222,7 +235,7 @@ function Timestamp() {
           className="timestamp-button"
           disabled={loading || tsLoading}
         >
-          {buttonLabel}
+          {buttonContent}
         </button>
       </form>
 
@@ -232,7 +245,15 @@ function Timestamp() {
         </p>
       )}
 
-      {loading && <div className="timestamp-skeleton" aria-hidden="true" />}
+      {/* Loading placeholder: shimmering thumbnail with a spinner + title bar */}
+      {loading && (
+        <div className="timestamp-loading" aria-hidden="true">
+          <div className="timestamp-skeleton">
+            <FontAwesomeIcon icon={faSpinner} spin className="timestamp-loader-icon" />
+          </div>
+          <div className="timestamp-skeleton-title" />
+        </div>
+      )}
 
       {video && !loading && (
         <figure className="timestamp-video">
@@ -272,7 +293,7 @@ function Timestamp() {
         </p>
       )}
 
-      {/* "Your recent videos": clicking one opens its saved timestamps (no Gemini call) */}
+      {/* History: clicking one opens its saved timestamps (no Gemini call) */}
       <VideoList onSelect={setPopData} />
 
       {/* Popup */}
