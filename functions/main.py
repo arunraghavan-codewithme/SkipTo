@@ -1,7 +1,7 @@
 import os
 import time
 
-from firebase_functions import https_fn, options
+from firebase_functions import https_fn, logger, options
 from firebase_admin import initialize_app
 from google import genai
 from google.genai import errors, types
@@ -26,17 +26,20 @@ def get_client() -> genai.Client:
     if _client is None:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
+            logger.error("GEMINI_API_KEY is missing")
             raise https_fn.HttpsError(
                 https_fn.FunctionsErrorCode.FAILED_PRECONDITION,
                 "GEMINI_API_KEY is not set in functions/.env",
             )
         _client = genai.Client(api_key=api_key)
+        logger.info("Gemini client created")
     return _client
 
 
 def require_url(data: dict) -> str:
     url = data.get("url")
     if not url:
+        logger.warn("Request is missing 'url'", data=data)
         raise https_fn.HttpsError(
             https_fn.FunctionsErrorCode.INVALID_ARGUMENT, "Missing 'url'."
         )
@@ -51,16 +54,24 @@ def generate_with_retry(contents, config=None):
     """Call Gemini, retrying automatically if it's busy or rate-limited."""
     for attempt in range(len(RETRY_DELAYS) + 1):
         try:
-            return get_client().models.generate_content(
+            logger.info("Calling Gemini", model=MODEL, attempt=attempt + 1)
+            response = get_client().models.generate_content(
                 model=MODEL, contents=contents, config=config
             )
+            logger.info("Gemini responded", attempt=attempt + 1)
+            return response
         except errors.APIError as e:
             can_retry = e.code in RETRY_CODES and attempt < len(RETRY_DELAYS)
             if can_retry:
-                print(f"Gemini returned {e.code}, retrying in {RETRY_DELAYS[attempt]}s...")
+                logger.warn(
+                    "Gemini busy, retrying",
+                    code=e.code,
+                    wait_seconds=RETRY_DELAYS[attempt],
+                )
                 time.sleep(RETRY_DELAYS[attempt])
                 continue
 
+            logger.error("Gemini API error", code=e.code, message=str(e))
             if e.code == 429:
                 raise https_fn.HttpsError(
                     https_fn.FunctionsErrorCode.RESOURCE_EXHAUSTED,
@@ -75,6 +86,7 @@ def generate_with_retry(contents, config=None):
                 https_fn.FunctionsErrorCode.INTERNAL, f"Gemini error: {e}"
             )
         except Exception as e:
+            logger.error("Unexpected error calling Gemini", message=str(e))
             raise https_fn.HttpsError(
                 https_fn.FunctionsErrorCode.INTERNAL, f"Gemini error: {e}"
             )
@@ -87,10 +99,12 @@ def ask_about_video(req: https_fn.CallableRequest):
     data = req.data or {}
     url = require_url(data)
     prompt = data.get("prompt") or "Summarize this video in 5 bullet points."
+    logger.info("ask_about_video called", url=url, prompt=prompt)
 
     response = generate_with_retry(
         contents=types.Content(parts=[video_part(url), types.Part(text=prompt)])
     )
+    logger.info("ask_about_video done", answer_length=len(response.text or ""))
     return {"text": response.text}
 
 
@@ -112,8 +126,10 @@ def generate_timestamps(req: https_fn.CallableRequest):
     url = require_url(data)
     language = data.get("language", "en")
     style = data.get("timestamps_style", "long")
+    logger.info("generate_timestamps called", url=url, language=language, style=style)
 
     if style not in ("long", "short"):
+        logger.warn("Invalid timestamps_style", style=style)
         raise https_fn.HttpsError(
             https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
             "'timestamps_style' must be 'long' or 'short'.",
@@ -144,12 +160,18 @@ Also give the video's total length in whole minutes."""
 
     result: TimestampsResult = response.parsed
     if result is None:
+        logger.error("Gemini returned no parsable timestamps", raw=response.text)
         raise https_fn.HttpsError(
             https_fn.FunctionsErrorCode.INTERNAL,
             "Gemini did not return valid timestamps. Try again.",
         )
 
     timestamps_list = [f"{t.time} - {t.title}" for t in result.timestamps]
+    logger.info(
+        "generate_timestamps done",
+        count=len(timestamps_list),
+        video_duration=result.video_duration_minutes,
+    )
 
     return {
         "url": url,
