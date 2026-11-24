@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+// eslint-disable-next-line no-unused-vars
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 // Your web app's Firebase configuration
@@ -22,11 +23,12 @@ const analytics = getAnalytics(app);
 const functions = getFunctions(app);
 
 // --- NEW: Emulator wiring for Functions only ---
+// Turned off: Windows blocks the local emulator, so we use the live functions.
 if (
   window.location.hostname === "localhost" ||
   process.env.REACT_APP_ENV === "local"
 ) {
-  connectFunctionsEmulator(functions, "localhost", 5001);
+  // connectFunctionsEmulator(functions, "localhost", 5001);
 }
 
 // Export whatever you need elsewhere

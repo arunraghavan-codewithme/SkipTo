@@ -1,148 +1,217 @@
 .timestamp-card {
-    width: 100%;
-    padding: 2rem;
-    background: rgba(15, 23, 42, 0.7);
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-    text-align: left;
+  width: 100%;
+  padding: 2rem;
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  text-align: left;
+}
+
+.timestamp-title {
+  margin: 0 0 1rem;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.timestamp-text {
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+}
+
+.timestamp-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.4rem 0.4rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.timestamp-link-icon {
+  color: #94a3b8;
+}
+
+.timestamp-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.timestamp-input::placeholder {
+  color: #64748b;
+}
+
+.timestamp-button {
+  padding: 0.6rem 1.25rem;
+  background: #2196f3;
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.timestamp-button:hover:not(:disabled) {
+  background: #1976d2;
+}
+
+.timestamp-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.timestamp-error {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #f87171;
+}
+
+/* Thumbnail + title, centered under the input */
+.timestamp-video {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2rem 0 0;
+  text-align: center;
+}
+
+.timestamp-thumbnail {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.timestamp-video-title {
+  max-width: 640px;
+  margin-top: 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #f8fafc;
+}
+
+/* Loading placeholder */
+.timestamp-skeleton {
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 16 / 9;
+  margin: 2rem auto 0;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: timestamp-shimmer 1.2s infinite linear;
+}
+
+@keyframes timestamp-shimmer {
+  from {
+    background-position: 200% 0;
   }
-  
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Generated timestamps ---------- */
+
+.timestamp-status {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+  opacity: 0.8;
+}
+
+.timestamp-results {
+  margin-top: 1.5rem;
+  text-align: left;
+}
+
+.timestamp-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+}
+
+.timestamp-copy {
+  padding: 0.4rem 0.9rem;
+  background: transparent;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.timestamp-copy:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.timestamp-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.timestamp-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  line-height: 1.4;
+  color: #e2e8f0;
+}
+
+.timestamp-list a {
+  color: #2196f3;
+  font-family: monospace;
+  font-weight: 600;
+  text-decoration: none;
+  margin-right: 0.25rem;
+}
+
+.timestamp-list a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .timestamp-card {
+    padding: 1.25rem;
+  }
+
   .timestamp-title {
-    margin: 0 0 1rem;
-    font-size: 1.9rem;
-    font-weight: 700;
-    color: #f8fafc;
+    font-size: 1.5rem;
   }
-  
-  .timestamp-text {
-    margin: 0 0 1.5rem;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    color: #e2e8f0;
-  }
-  
-  .timestamp-form {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.4rem 0.4rem 0.4rem 1rem;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-  }
-  
-  .timestamp-link-icon {
-    color: #94a3b8;
-  }
-  
-  .timestamp-input {
-    flex: 1;
-    min-width: 0;
-    padding: 0.6rem 0;
-    background: transparent;
-    border: 0;
-    outline: none;
-    color: #f8fafc;
-    font-size: 0.95rem;
-    font-family: inherit;
-  }
-  
-  .timestamp-input::placeholder {
-    color: #64748b;
-  }
-  
-  .timestamp-button {
-    padding: 0.6rem 1.25rem;
-    background: #2196f3;
-    color: #fff;
-    border: 0;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-  
-  .timestamp-button:hover:not(:disabled) {
-    background: #1976d2;
-  }
-  
-  .timestamp-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-  
-  .timestamp-error {
-    margin: 0.75rem 0 0;
-    font-size: 0.9rem;
-    color: #f87171;
-  }
-  
-  /* Thumbnail + title, centered under the input */
-  .timestamp-video {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 2rem 0 0;
-    text-align: center;
-  }
-  
-  .timestamp-thumbnail {
-    display: block;
-    width: 100%;
-    max-width: 640px;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-    background: rgba(0, 0, 0, 0.3);
-  }
-  
+
   .timestamp-video-title {
-    max-width: 640px;
-    margin-top: 1rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-    line-height: 1.4;
-    color: #f8fafc;
+    font-size: 1.05rem;
   }
-  
-  /* Loading placeholder */
-  .timestamp-skeleton {
-    width: 100%;
-    max-width: 640px;
-    aspect-ratio: 16 / 9;
-    margin: 2rem auto 0;
-    border-radius: 10px;
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.05) 25%,
-      rgba(255, 255, 255, 0.12) 50%,
-      rgba(255, 255, 255, 0.05) 75%
-    );
-    background-size: 200% 100%;
-    animation: timestamp-shimmer 1.2s infinite linear;
+
+  .timestamp-results-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
-  
-  @keyframes timestamp-shimmer {
-    from {
-      background-position: 200% 0;
-    }
-    to {
-      background-position: -200% 0;
-    }
-  }
-  
-  @media (max-width: 600px) {
-    .timestamp-card {
-      padding: 1.25rem;
-    }
-  
-    .timestamp-title {
-      font-size: 1.5rem;
-    }
-  
-    .timestamp-video-title {
-      font-size: 1.05rem;
-    }
-  }
+}
