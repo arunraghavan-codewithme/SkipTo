@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "skiptoai",
     "public": "build",
     "ignore": [
       "firebase.json",
