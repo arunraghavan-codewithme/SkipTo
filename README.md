@@ -124,7 +124,7 @@ Browser shows the popup and saves the result to History
 ## 📁 Project Structure
 
 ```
-my-app/
+SkipTo/
 ├── .github/workflows/        # GitHub Actions: preview + live deploys
 ├── functions/                # Python Cloud Functions
 │   ├── main.py               # generate_timestamps, ask_about_video
@@ -156,8 +156,8 @@ my-app/
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/arunraghavan-codewithme/my-app.git
-cd my-app
+git clone https://github.com/arunraghavan-codewithme/SkipTo.git
+cd SkipTo
 ```
 
 ### 2. Frontend
