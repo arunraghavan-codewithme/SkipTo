@@ -28,6 +28,25 @@ LOW_RES = types.MediaResolution.MEDIA_RESOLUTION_LOW
 _skip_until = {}  # model name -> time when we can try it again
 
 
+# ---------- security guards ----------
+
+def require_auth_and_app_check(req: https_fn.CallableRequest, name: str) -> str:
+    """Only allow signed-in visitors coming from the real website. Returns the user id."""
+    if req.auth is None:
+        logger.warn(f"{name}: rejected, not signed in")
+        raise https_fn.HttpsError(
+            https_fn.FunctionsErrorCode.UNAUTHENTICATED,
+            "You must be signed in to use this.",
+        )
+    if req.app is None:
+        logger.warn(f"{name}: rejected, missing App Check token", uid=req.auth.uid)
+        raise https_fn.HttpsError(
+            https_fn.FunctionsErrorCode.PERMISSION_DENIED,
+            "Request did not come from the SkipTo website.",
+        )
+    return req.auth.uid
+
+
 # ---------- shared helpers ----------
 
 _client = None
@@ -130,12 +149,17 @@ def generate_with_fallback(contents, config=None):
 
 # ---------- 1. Ask anything about a video ----------
 
-@https_fn.on_call(timeout_sec=300, memory=options.MemoryOption.GB_1)
+@https_fn.on_call(
+    enforce_app_check=True,
+    timeout_sec=300,
+    memory=options.MemoryOption.GB_1,
+)
 def ask_about_video(req: https_fn.CallableRequest):
+    uid = require_auth_and_app_check(req, "ask_about_video")
     data = req.data or {}
     url = require_url(data)
     prompt = data.get("prompt") or "Summarize this video in 5 bullet points."
-    logger.info("ask_about_video called", url=url, prompt=prompt)
+    logger.info("ask_about_video called", uid=uid, url=url, prompt=prompt)
 
     response, model_used = generate_with_fallback(
         contents=types.Content(parts=[video_part(url), types.Part(text=prompt)]),
@@ -157,13 +181,20 @@ class TimestampsResult(BaseModel):
     video_duration_minutes: int
 
 
-@https_fn.on_call(timeout_sec=300, memory=options.MemoryOption.GB_1)
+@https_fn.on_call(
+    enforce_app_check=True,
+    timeout_sec=300,
+    memory=options.MemoryOption.GB_1,
+)
 def generate_timestamps(req: https_fn.CallableRequest):
+    uid = require_auth_and_app_check(req, "generate_timestamps")
     data = req.data or {}
     url = require_url(data)
     language = data.get("language", "en")
     style = data.get("timestamps_style", "long")
-    logger.info("generate_timestamps called", url=url, language=language, style=style)
+    logger.info(
+        "generate_timestamps called", uid=uid, url=url, language=language, style=style
+    )
 
     if style not in ("long", "short"):
         logger.warn("Invalid timestamps_style", style=style)
@@ -207,6 +238,7 @@ Also give the video's total length in whole minutes."""
     timestamps_list = [f"{t.time} - {t.title}" for t in result.timestamps]
     logger.info(
         "generate_timestamps done",
+        uid=uid,
         model=model_used,
         count=len(timestamps_list),
         video_duration=result.video_duration_minutes,
