@@ -6,7 +6,7 @@ import {
   faWandMagicSparkles,
 } from '@fortawesome/free-solid-svg-icons';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '../../firebase';
+import { functions, ensureSignedIn } from '../../firebase';
 import StampPop from '../timestampcomp/StampPop';
 import VideoList, { saveToHistory } from '../timestampcomp/VideoList';
 import './Timestamp.css';
@@ -21,6 +21,17 @@ const YOUTUBE_REGEX =
 const generateTimestamps = httpsCallable(functions, 'generate_timestamps', {
   timeout: 120000,
 });
+
+// Turns Firebase error codes into messages people can understand
+const friendlyError = (err) => {
+  if (err?.code === 'functions/unauthenticated') {
+    return 'Your session expired. Please refresh the page and try again.';
+  }
+  if (err?.code === 'functions/permission-denied') {
+    return 'Request blocked by our security check. Please refresh the page and try again.';
+  }
+  return err?.message || 'Could not generate timestamps. Please try again.';
+};
 
 function Timestamp() {
   const [url, setUrl] = useState('');
@@ -152,6 +163,7 @@ function Timestamp() {
     console.log('Payload sent to generate_timestamps:', payload);
 
     try {
+      await ensureSignedIn(); // make sure the visitor is signed in first
       const res = await generateTimestamps(payload);
       if (requestId !== tsRequestRef.current) return; // a newer request replaced this one
       console.log('Data received from generate_timestamps:', res.data);
@@ -172,7 +184,7 @@ function Timestamp() {
     } catch (err) {
       if (requestId !== tsRequestRef.current) return;
       console.error('generate_timestamps failed:', err);
-      setTsError(err.message || 'Could not generate timestamps. Please try again.');
+      setTsError(friendlyError(err));
     } finally {
       if (requestId === tsRequestRef.current) setTsLoading(false);
     }
